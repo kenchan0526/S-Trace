@@ -1,0 +1,72 @@
+"use client";
+
+import { useState, useEffect } from "react";
+import { Subscription, Settings, DEFAULT_SETTINGS } from "@/types/subscription";
+
+export function useSubscriptions() {
+  const [subscriptions, setSubscriptions] = useState<Subscription[]>([]);
+  const [settings, setSettings] = useState<Settings>(DEFAULT_SETTINGS);
+  const [isLoaded, setIsLoaded] = useState(false);
+
+  // Load from LocalStorage on mount
+  useEffect(() => {
+    try {
+      const storedSubs = localStorage.getItem("s-trace-subscriptions");
+      if (storedSubs) {
+        setSubscriptions(JSON.parse(storedSubs));
+      }
+
+      const storedSettings = localStorage.getItem("s-trace-settings");
+      if (storedSettings) {
+        setSettings(JSON.parse(storedSettings));
+      } else {
+        localStorage.setItem("s-trace-settings", JSON.stringify(DEFAULT_SETTINGS));
+      }
+    } catch (e) {
+      console.error("Failed to load data from localStorage", e);
+    } finally {
+      setIsLoaded(true);
+    }
+  }, []);
+
+  // Save to LocalStorage whenever they change
+  useEffect(() => {
+    if (isLoaded) {
+      localStorage.setItem("s-trace-subscriptions", JSON.stringify(subscriptions));
+    }
+  }, [subscriptions, isLoaded]);
+
+  useEffect(() => {
+    if (isLoaded) {
+      localStorage.setItem("s-trace-settings", JSON.stringify(settings));
+    }
+  }, [settings, isLoaded]);
+
+  const addSubscription = (sub: Subscription) => {
+    setSubscriptions((prev) => [...prev, sub]);
+  };
+
+  const updateSubscription = (id: string, updatedSub: Partial<Subscription>) => {
+    setSubscriptions((prev) =>
+      prev.map((sub) => (sub.id === id ? { ...sub, ...updatedSub } : sub))
+    );
+  };
+
+  const deleteSubscription = (id: string) => {
+    setSubscriptions((prev) => prev.filter((sub) => sub.id !== id));
+  };
+
+  const updateSettings = (newSettings: Settings) => {
+    setSettings(newSettings);
+  };
+
+  return {
+    subscriptions,
+    settings,
+    isLoaded,
+    addSubscription,
+    updateSubscription,
+    deleteSubscription,
+    updateSettings,
+  };
+}

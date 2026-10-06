@@ -1,0 +1,315 @@
+"use client";
+
+import { useState, useEffect } from "react";
+import { X, Trash2 } from "lucide-react";
+import { Subscription, Settings } from "@/types/subscription";
+
+interface SubscriptionModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  onSave: (sub: Subscription) => void;
+  onDelete?: (id: string) => void;
+  initialData?: Subscription | null;
+  settings: Settings;
+}
+
+export default function SubscriptionModal({
+  isOpen,
+  onClose,
+  onSave,
+  onDelete,
+  initialData,
+  settings,
+}: SubscriptionModalProps) {
+  const [formData, setFormData] = useState<Partial<Subscription>>({
+    name: "",
+    amount: 0,
+    billingCycle: "毎月",
+    billingDate: 1,
+    paymentMethod: settings.paymentMethods[0],
+    category: settings.categories[0],
+    planType: settings.planTypes[0],
+    startDate: new Date().toISOString().split("T")[0],
+    status: "active",
+    isChargeRequired: false,
+    reminders: [],
+    isChargedThisMonth: false,
+    lastChargedMonth: "",
+  });
+
+  useEffect(() => {
+    if (initialData) {
+      setFormData(initialData);
+    } else {
+      setFormData({
+        name: "",
+        amount: 0,
+        billingCycle: "毎月",
+        billingDate: 1,
+        paymentMethod: settings.paymentMethods[0],
+        category: settings.categories[0],
+        planType: settings.planTypes[0],
+        startDate: new Date().toISOString().split("T")[0],
+        status: "active",
+        isChargeRequired: false,
+        reminders: [],
+        isChargedThisMonth: false,
+        lastChargedMonth: "",
+      });
+    }
+  }, [initialData, isOpen, settings]);
+
+  if (!isOpen) return null;
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value.replace(/,/g, "");
+    if (!isNaN(Number(value))) {
+      setFormData((prev) => ({ ...prev, amount: Number(value) }));
+    }
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!formData.name || formData.amount === undefined) return;
+
+    const newSub: Subscription = {
+      id: initialData?.id || crypto.randomUUID(),
+      name: formData.name,
+      amount: formData.amount,
+      billingCycle: formData.billingCycle || "毎月",
+      billingDate: Number(formData.billingDate) || 1,
+      paymentMethod: formData.paymentMethod || settings.paymentMethods[0],
+      category: formData.category || settings.categories[0],
+      planType: formData.planType || settings.planTypes[0],
+      startDate: formData.startDate || new Date().toISOString().split("T")[0],
+      status: formData.status as any || "active",
+      isChargeRequired: formData.isChargeRequired || false,
+      reminders: formData.reminders || [],
+      isChargedThisMonth: formData.isChargedThisMonth || false,
+      lastChargedMonth: formData.lastChargedMonth || "",
+      notes: formData.notes,
+      officialCancelUrl: formData.officialCancelUrl,
+      createdAt: initialData?.createdAt || new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    };
+
+    onSave(newSub);
+    onClose();
+  };
+
+  const handleDelete = () => {
+    if (initialData && onDelete) {
+      if (window.confirm("本当に削除しますか？")) {
+        onDelete(initialData.id);
+        onClose();
+      }
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 flex flex-col bg-white overflow-hidden slide-up-animation">
+      {/* Header */}
+      <div className="flex items-center justify-between px-4 py-4 border-b border-gray-100 bg-white sticky top-0 z-10 pt-[env(safe-area-inset-top)]">
+        <button onClick={onClose} className="p-2 -ml-2 text-gray-500 hover:text-gray-900">
+          <X size={24} />
+        </button>
+        <h2 className="text-lg font-bold text-gray-900">
+          {initialData ? "編集" : "サブスク追加"}
+        </h2>
+        <button onClick={handleSubmit} className="px-4 py-1.5 bg-primary text-white text-sm font-bold rounded-full">
+          保存
+        </button>
+      </div>
+
+      {/* Scrollable Form */}
+      <div className="flex-1 overflow-y-auto pb-[env(safe-area-inset-bottom)] p-4 interactive-widget-resizes-content">
+        <form onSubmit={handleSubmit} className="space-y-6 max-w-lg mx-auto pb-20">
+          {/* Name */}
+          <div>
+            <label className="block text-sm font-bold text-gray-700 mb-1">サービス名</label>
+            <input
+              type="text"
+              name="name"
+              required
+              value={formData.name || ""}
+              onChange={handleChange}
+              placeholder="例: Apple One"
+              className="w-full px-4 py-3 bg-gray-50 border-none rounded-xl focus:ring-2 focus:ring-primary focus:bg-white transition-all text-base"
+            />
+          </div>
+
+          {/* Amount */}
+          <div>
+            <label className="block text-sm font-bold text-gray-700 mb-1">金額 (円)</label>
+            <div className="relative">
+              <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 font-bold">¥</span>
+              <input
+                type="text"
+                inputMode="numeric"
+                required
+                value={formData.amount?.toLocaleString() || ""}
+                onChange={handleAmountChange}
+                placeholder="1,200"
+                className="w-full pl-8 pr-4 py-3 bg-gray-50 border-none rounded-xl focus:ring-2 focus:ring-primary focus:bg-white transition-all text-base font-bold"
+              />
+            </div>
+          </div>
+
+          {/* Billing Cycle & Date */}
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-bold text-gray-700 mb-1">支払いサイクル</label>
+              <select
+                name="billingCycle"
+                value={formData.billingCycle}
+                onChange={handleChange}
+                className="w-full px-4 py-3 bg-gray-50 border-none rounded-xl focus:ring-2 focus:ring-primary text-base"
+              >
+                {settings.billingCycles.map(c => <option key={c} value={c}>{c}</option>)}
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-bold text-gray-700 mb-1">支払日 (日)</label>
+              <select
+                name="billingDate"
+                value={formData.billingDate}
+                onChange={handleChange}
+                className="w-full px-4 py-3 bg-gray-50 border-none rounded-xl focus:ring-2 focus:ring-primary text-base"
+              >
+                {Array.from({ length: 31 }, (_, i) => i + 1).map(d => (
+                  <option key={d} value={d}>{d}日</option>
+                ))}
+              </select>
+            </div>
+          </div>
+
+          {/* Payment Method */}
+          <div>
+            <label className="block text-sm font-bold text-gray-700 mb-1">支払い方法</label>
+            <select
+              name="paymentMethod"
+              value={formData.paymentMethod}
+              onChange={handleChange}
+              className="w-full px-4 py-3 bg-gray-50 border-none rounded-xl focus:ring-2 focus:ring-primary text-base"
+            >
+              {settings.paymentMethods.map(p => <option key={p} value={p}>{p}</option>)}
+            </select>
+          </div>
+
+          {/* Toggle Charge Required */}
+          <div className="flex items-center justify-between p-4 bg-gray-50 rounded-xl">
+            <div>
+              <p className="font-bold text-sm text-gray-900">事前チャージが必要</p>
+              <p className="text-xs text-gray-500">PayPayなど残高不足を防ぐため</p>
+            </div>
+            <label className="relative inline-flex items-center cursor-pointer">
+              <input 
+                type="checkbox" 
+                checked={formData.isChargeRequired}
+                onChange={(e) => setFormData(p => ({ ...p, isChargeRequired: e.target.checked }))}
+                className="sr-only peer" 
+              />
+              <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
+            </label>
+          </div>
+
+          {/* Category & Plan */}
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-bold text-gray-700 mb-1">カテゴリー</label>
+              <select
+                name="category"
+                value={formData.category}
+                onChange={handleChange}
+                className="w-full px-4 py-3 bg-gray-50 border-none rounded-xl focus:ring-2 focus:ring-primary text-base"
+              >
+                {settings.categories.map(c => <option key={c} value={c}>{c}</option>)}
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-bold text-gray-700 mb-1">プラン</label>
+              <select
+                name="planType"
+                value={formData.planType}
+                onChange={handleChange}
+                className="w-full px-4 py-3 bg-gray-50 border-none rounded-xl focus:ring-2 focus:ring-primary text-base"
+              >
+                {settings.planTypes.map(c => <option key={c} value={c}>{c}</option>)}
+              </select>
+            </div>
+          </div>
+
+          {/* Status */}
+          <div>
+            <label className="block text-sm font-bold text-gray-700 mb-2">ステータス</label>
+            <div className="grid grid-cols-2 gap-2">
+              {[
+                { val: "active", label: "契約中" },
+                { val: "trial", label: "トライアル中" },
+                { val: "considering_cancellation", label: "解約検討中" },
+                { val: "paused", label: "休止中" }
+              ].map(s => (
+                <button
+                  key={s.val}
+                  type="button"
+                  onClick={() => setFormData(p => ({ ...p, status: s.val as any }))}
+                  className={`py-3 px-2 rounded-xl text-sm font-bold transition-colors ${
+                    formData.status === s.val 
+                      ? "bg-primary-light text-primary border-2 border-primary" 
+                      : "bg-gray-50 text-gray-600 border-2 border-transparent"
+                  }`}
+                >
+                  {s.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Start Date */}
+          <div>
+            <label className="block text-sm font-bold text-gray-700 mb-1">契約開始日</label>
+            <input
+              type="date"
+              name="startDate"
+              value={formData.startDate}
+              onChange={handleChange}
+              className="w-full px-4 py-3 bg-gray-50 border-none rounded-xl focus:ring-2 focus:ring-primary text-base"
+            />
+          </div>
+
+          {/* Notes */}
+          <div>
+            <label className="block text-sm font-bold text-gray-700 mb-1">メモ</label>
+            <textarea
+              name="notes"
+              value={formData.notes || ""}
+              onChange={handleChange}
+              placeholder="備考など..."
+              rows={3}
+              className="w-full px-4 py-3 bg-gray-50 border-none rounded-xl focus:ring-2 focus:ring-primary text-base"
+            />
+          </div>
+
+          {/* Delete Button */}
+          {initialData && onDelete && (
+            <div className="pt-6 border-t border-gray-100">
+              <button
+                type="button"
+                onClick={handleDelete}
+                className="w-full flex items-center justify-center space-x-2 py-4 text-red-500 font-bold bg-red-50 rounded-xl hover:bg-red-100 transition-colors"
+              >
+                <Trash2 size={20} />
+                <span>このサブスクを削除</span>
+              </button>
+            </div>
+          )}
+        </form>
+      </div>
+    </div>
+  );
+}
