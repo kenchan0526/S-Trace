@@ -9,6 +9,7 @@ import { useSubscriptions } from "@/hooks/useSubscriptions";
 import { Subscription } from "@/types/subscription";
 import { Bell, CheckCircle2 } from "lucide-react";
 import Link from "next/link";
+import toast from "react-hot-toast";
 
 export default function Home() {
   const { subscriptions, settings, isLoaded, addSubscription, updateSubscription, deleteSubscription } = useSubscriptions();
@@ -36,7 +37,15 @@ export default function Home() {
 
   const markAsCharged = (id: string, e: React.MouseEvent) => {
     e.stopPropagation();
-    updateSubscription(id, { isChargedThisMonth: true });
+    updateSubscription(id, { 
+      isChargedThisMonth: true,
+      lastChargedMonth: new Date().toISOString().slice(0, 7)
+    });
+    toast.success("チャージ完了を記録しました");
+  };
+
+  const handleEnableNotification = () => {
+    toast.success("通知を許可しました（デモ）");
   };
 
   return (
@@ -84,7 +93,7 @@ export default function Home() {
               <div>
                 <h3 className="text-sm font-bold text-gray-900">通知をオンにしませんか？</h3>
                 <p className="text-xs text-gray-600 mt-1 mb-2 leading-relaxed">支払い前のチャージ忘れを防ぐためにお知らせします。</p>
-                <button className="text-xs font-bold text-blue-600 bg-white px-4 py-1.5 rounded-full border border-blue-200 shadow-sm active:scale-95 transition-transform">
+                <button onClick={handleEnableNotification} className="text-xs font-bold text-blue-600 bg-white px-4 py-1.5 rounded-full border border-blue-200 shadow-sm active:scale-95 transition-transform">
                   許可する
                 </button>
               </div>

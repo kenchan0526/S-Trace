@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { X, Trash2 } from "lucide-react";
 import { Subscription, Settings } from "@/types/subscription";
+import toast from "react-hot-toast";
 
 interface SubscriptionModalProps {
   isOpen: boolean;
@@ -99,6 +100,7 @@ export default function SubscriptionModal({
     };
 
     onSave(newSub);
+    toast.success(initialData ? "更新しました" : "追加しました");
     onClose();
   };
 
@@ -106,6 +108,7 @@ export default function SubscriptionModal({
     if (initialData && onDelete) {
       if (window.confirm("本当に削除しますか？")) {
         onDelete(initialData.id);
+        toast.success("削除しました");
         onClose();
       }
     }

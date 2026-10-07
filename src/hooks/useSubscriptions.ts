@@ -8,12 +8,28 @@ export function useSubscriptions() {
   const [settings, setSettings] = useState<Settings>(DEFAULT_SETTINGS);
   const [isLoaded, setIsLoaded] = useState(false);
 
-  // Load from LocalStorage on mount
   useEffect(() => {
     try {
       const storedSubs = localStorage.getItem("s-trace-subscriptions");
+      let parsedSubs: Subscription[] = [];
       if (storedSubs) {
-        setSubscriptions(JSON.parse(storedSubs));
+        parsedSubs = JSON.parse(storedSubs);
+        
+        // Month reset logic
+        const currentMonth = new Date().toISOString().slice(0, 7); // YYYY-MM
+        let hasChanges = false;
+        parsedSubs = parsedSubs.map(sub => {
+          if (sub.isChargedThisMonth && sub.lastChargedMonth !== currentMonth) {
+            hasChanges = true;
+            return { ...sub, isChargedThisMonth: false };
+          }
+          return sub;
+        });
+        
+        setSubscriptions(parsedSubs);
+        if (hasChanges) {
+          localStorage.setItem("s-trace-subscriptions", JSON.stringify(parsedSubs));
+        }
       }
 
       const storedSettings = localStorage.getItem("s-trace-settings");
@@ -29,7 +45,6 @@ export function useSubscriptions() {
     }
   }, []);
 
-  // Save to LocalStorage whenever they change
   useEffect(() => {
     if (isLoaded) {
       localStorage.setItem("s-trace-subscriptions", JSON.stringify(subscriptions));
@@ -70,3 +85,4 @@ export function useSubscriptions() {
     updateSettings,
   };
 }
+
