@@ -28,9 +28,15 @@ export default function Home() {
   const getUpcomingSubs = () => {
     const today = new Date().getDate();
     return activeSubs
-      .filter(s => s.billingDate >= today || (s.isChargeRequired && !s.isChargedThisMonth))
-      .sort((a,b) => a.billingDate - b.billingDate)
-      .slice(0, 5);
+      .filter(s => {
+        if (s.isChargeRequired && !s.isChargedThisMonth) return true;
+        if (s.billingDate >= today) {
+           const daysLeft = s.billingDate - today;
+           return daysLeft <= 5;
+        }
+        return false;
+      })
+      .sort((a,b) => a.billingDate - b.billingDate);
   };
   const upcomingList = getUpcomingSubs();
 
