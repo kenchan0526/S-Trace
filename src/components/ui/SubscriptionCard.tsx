@@ -24,6 +24,9 @@ export default function SubscriptionCard({ subscription, onClick }: Subscription
     const years = Math.max(1, differenceInYears(endDate, startDate) + 1);
     totalPaid = subscription.amount * years;
   } else {
+    totalPaid = subscription.amount;
+  }
+
   const paymentText = subscription.billingCycle === "毎年" 
     ? `毎年${subscription.billingMonth || 1}月${subscription.billingDate}日` 
     : `毎月${subscription.billingDate}日`;
