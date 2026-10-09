@@ -287,7 +287,6 @@ export default function SubscriptionModal({
               <option value="trial">無料トライアル中</option>
               <option value="considering_cancellation">解約検討中</option>
               <option value="cancelled">解約済</option>
-              <option value="archived">アーカイブ</option>
             </select>
           </div>
 

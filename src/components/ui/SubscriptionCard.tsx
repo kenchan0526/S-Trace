@@ -27,6 +27,20 @@ export default function SubscriptionCard({ subscription, onClick }: Subscription
     totalPaid = subscription.amount;
   }
 
+  const today = new Date().getDate();
+  let paymentText = `毎月${subscription.billingDate}日`;
+  let isUpcoming = false;
+  
+  if (subscription.status !== "cancelled") {
+    if (subscription.billingDate === today) {
+      paymentText = "今日が支払日";
+      isUpcoming = true;
+    } else if (subscription.billingDate > today) {
+      paymentText = `支払いまであと${subscription.billingDate - today}日`;
+      isUpcoming = true;
+    }
+  }
+
   return (
     <div 
       onClick={onClick}
@@ -45,14 +59,14 @@ export default function SubscriptionCard({ subscription, onClick }: Subscription
           </div>
         </div>
         <div className="text-right shrink-0">
-          <p className="font-bold text-lg text-gray-900">
+          <p className={`font-bold text-lg ${isUpcoming ? "text-primary" : "text-gray-900"}`}>
             ¥{subscription.amount.toLocaleString()}
             <span className="text-[10px] font-normal text-gray-500 ml-0.5">
               /{subscription.billingCycle === "毎月" ? "月" : subscription.billingCycle === "毎年" ? "年" : "回"}
             </span>
           </p>
-          <p className="text-[10px] text-gray-500 mt-1">
-            支払日: {subscription.billingDate}日
+          <p className={`text-[10px] mt-1 font-bold ${isUpcoming ? "text-primary" : "text-gray-500"}`}>
+            {paymentText}
           </p>
         </div>
       </div>
@@ -77,12 +91,7 @@ export default function SubscriptionCard({ subscription, onClick }: Subscription
         )}
         {subscription.status === "cancelled" && (
           <span className="px-2.5 py-1 rounded-full bg-gray-100 text-gray-500 text-[10px] font-medium border border-gray-200">
-            解約済
-          </span>
-        )}
-        {subscription.status === "archived" && (
-          <span className="px-2.5 py-1 rounded-full bg-gray-100 text-gray-400 text-[10px] font-medium border border-gray-200">
-            アーカイブ
+            解約済 (アーカイブ)
           </span>
         )}
       </div>

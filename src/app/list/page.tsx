@@ -34,8 +34,8 @@ export default function ListPage() {
   };
 
   const filteredSubs = subscriptions.filter(sub => {
-    if (filterStatus === "active_only" && sub.status === "archived") return false;
-    if (filterStatus === "archived" && sub.status !== "archived") return false;
+    if (filterStatus === "active_only" && (sub.status === "cancelled" || sub.status === "archived")) return false;
+    if (filterStatus === "archived" && sub.status !== "cancelled" && sub.status !== "archived") return false;
     if (filterCategory && sub.category !== filterCategory) return false;
     if (searchQuery && !sub.name.toLowerCase().includes(searchQuery.toLowerCase())) return false;
     return true;
