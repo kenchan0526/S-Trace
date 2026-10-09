@@ -179,6 +179,36 @@ export default function AnalyticsPage() {
           </div>
         )}
 
+        {/* Top 3 Expensive Subscriptions */}
+        {activeSubs.length > 0 && (
+          <div>
+            <h2 className="text-sm font-bold text-gray-900 mb-3 pl-2">高額なサブスクTOP 3</h2>
+            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 space-y-3">
+              {activeSubs
+                .map(sub => ({ ...sub, calculatedAmount: calculateAmount(sub) }))
+                .sort((a, b) => b.calculatedAmount - a.calculatedAmount)
+                .slice(0, 3)
+                .map((sub, index) => (
+                  <div key={sub.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-xl">
+                    <div className="flex items-center space-x-3">
+                      <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center font-bold text-primary text-sm">
+                        {index + 1}
+                      </div>
+                      <div>
+                        <h3 className="text-sm font-bold text-gray-900">{sub.name}</h3>
+                        <p className="text-xs text-gray-500">{sub.category}</p>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-sm font-bold text-gray-900">¥{sub.calculatedAmount.toLocaleString()}</p>
+                      <p className="text-[10px] text-gray-400">{isMonthly ? "月額換算" : "年額換算"}</p>
+                    </div>
+                  </div>
+              ))}
+            </div>
+          </div>
+        )}
+
       </div>
     </div>
   );

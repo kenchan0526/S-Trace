@@ -26,17 +26,42 @@ export default function Home() {
   }, 0);
 
   const getUpcomingSubs = () => {
-    const today = new Date().getDate();
+    const today = new Date();
+    today.setHours(0,0,0,0);
+    
     return activeSubs
       .filter(s => {
         if (s.isChargeRequired && !s.isChargedThisMonth) return true;
-        if (s.billingDate >= today) {
-           const daysLeft = s.billingDate - today;
-           return daysLeft <= 5;
+        
+        let subDate = new Date(today.getFullYear(), today.getMonth(), s.billingDate);
+        if (s.billingCycle === "毎年") {
+          subDate = new Date(today.getFullYear(), (s.billingMonth || 1) - 1, s.billingDate);
+          if (subDate < today) {
+            subDate.setFullYear(today.getFullYear() + 1);
+          }
+        } else {
+          if (subDate < today) {
+            subDate.setMonth(today.getMonth() + 1);
+          }
         }
-        return false;
+        
+        const diffTime = subDate.getTime() - today.getTime();
+        const daysLeft = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+        return daysLeft >= 0 && daysLeft <= 5;
       })
-      .sort((a,b) => a.billingDate - b.billingDate);
+      .sort((a,b) => {
+        const getNextDate = (s: Subscription) => {
+          let d = new Date(today.getFullYear(), today.getMonth(), s.billingDate);
+          if (s.billingCycle === "毎年") {
+            d = new Date(today.getFullYear(), (s.billingMonth || 1) - 1, s.billingDate);
+            if (d < today) d.setFullYear(today.getFullYear() + 1);
+          } else {
+            if (d < today) d.setMonth(today.getMonth() + 1);
+          }
+          return d.getTime();
+        };
+        return getNextDate(a) - getNextDate(b);
+      });
   };
   const upcomingList = getUpcomingSubs();
 

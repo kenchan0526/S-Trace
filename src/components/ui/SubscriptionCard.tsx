@@ -24,20 +24,24 @@ export default function SubscriptionCard({ subscription, onClick }: Subscription
     const years = Math.max(1, differenceInYears(endDate, startDate) + 1);
     totalPaid = subscription.amount * years;
   } else {
-    totalPaid = subscription.amount;
-  }
-
-  const today = new Date().getDate();
-  let paymentText = `毎月${subscription.billingDate}日`;
-  let isUpcoming = false;
+  const paymentText = subscription.billingCycle === "毎年" 
+    ? `毎年${subscription.billingMonth || 1}月${subscription.billingDate}日` 
+    : `毎月${subscription.billingDate}日`;
   
-  if (subscription.status !== "cancelled") {
-    if (subscription.billingDate === today) {
-      paymentText = "今日が支払日";
-      isUpcoming = true;
-    } else if (subscription.billingDate > today) {
-      paymentText = `支払いまであと${subscription.billingDate - today}日`;
-      isUpcoming = true;
+  let isUpcoming = false;
+  const today = new Date().getDate();
+  const currentMonth = new Date().getMonth() + 1;
+
+  if (subscription.status !== "cancelled" && subscription.status !== "archived") {
+    if (subscription.billingCycle === "毎年") {
+      const bMonth = subscription.billingMonth || 1;
+      if (bMonth === currentMonth && subscription.billingDate >= today) {
+        if (subscription.billingDate - today <= 5) isUpcoming = true;
+      }
+    } else {
+      if (subscription.billingDate >= today && subscription.billingDate - today <= 5) {
+        isUpcoming = true;
+      }
     }
   }
 

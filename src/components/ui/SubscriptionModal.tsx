@@ -26,6 +26,7 @@ export default function SubscriptionModal({
     name: "",
     amount: 0,
     billingCycle: "毎月",
+    billingMonth: 1,
     billingDate: 1,
     paymentMethod: settings.paymentMethods[0],
     category: settings.categories[0],
@@ -50,6 +51,7 @@ export default function SubscriptionModal({
         name: "",
         amount: 0,
         billingCycle: "毎月",
+        billingMonth: 1,
         billingDate: 1,
         paymentMethod: settings.paymentMethods[0],
         category: settings.categories[0],
@@ -88,6 +90,7 @@ export default function SubscriptionModal({
       name: formData.name,
       amount: formData.amount,
       billingCycle: formData.billingCycle || "毎月",
+      billingMonth: Number(formData.billingMonth) || 1,
       billingDate: Number(formData.billingDate) || 1,
       paymentMethod: formData.paymentMethod || settings.paymentMethods[0],
       category: formData.category || settings.categories[0],
@@ -204,17 +207,33 @@ export default function SubscriptionModal({
               </select>
             </div>
             <div>
-              <label className="block text-sm font-bold text-gray-700 mb-1">支払日 (日)</label>
-              <select
-                name="billingDate"
-                value={formData.billingDate}
-                onChange={handleChange}
-                className="w-full px-4 py-3 bg-gray-50 border-none rounded-xl focus:ring-2 focus:ring-primary text-base"
-              >
-                {Array.from({ length: 31 }, (_, i) => i + 1).map(d => (
-                  <option key={d} value={d}>{d}日</option>
-                ))}
-              </select>
+              <label className="block text-sm font-bold text-gray-700 mb-1">
+                支払日 {formData.billingCycle === "毎年" ? "(月/日)" : "(日)"}
+              </label>
+              <div className="flex space-x-2">
+                {formData.billingCycle === "毎年" && (
+                  <select
+                    name="billingMonth"
+                    value={formData.billingMonth || 1}
+                    onChange={handleChange}
+                    className="w-full px-4 py-3 bg-gray-50 border-none rounded-xl focus:ring-2 focus:ring-primary text-base"
+                  >
+                    {Array.from({ length: 12 }, (_, i) => i + 1).map(m => (
+                      <option key={m} value={m}>{m}月</option>
+                    ))}
+                  </select>
+                )}
+                <select
+                  name="billingDate"
+                  value={formData.billingDate}
+                  onChange={handleChange}
+                  className="w-full px-4 py-3 bg-gray-50 border-none rounded-xl focus:ring-2 focus:ring-primary text-base"
+                >
+                  {Array.from({ length: 31 }, (_, i) => i + 1).map(d => (
+                    <option key={d} value={d}>{d}日</option>
+                  ))}
+                </select>
+              </div>
             </div>
           </div>
 
