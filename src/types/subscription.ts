@@ -2,9 +2,10 @@ export interface Subscription {
   id: string; // UUID
   name: string; // サービス名 (例: Apple One, YouTube Premium)
   amount: number; // 金額 (日本円 integer)
-  billingCycle: string; // 'monthly' | 'yearly' | カスタム設定値
-  billingDate: number; // 毎月の支払日 (1〜31) ※年払いの場合は月・日
-  billingMonth?: number; // 年払い時の月 (1〜12)
+  billingCycle: string; // '毎月' | '毎年' | '半年に1回' | '週払い' | カスタム設定値
+  billingDate: number; // 毎月の支払日 (1〜31)
+  billingMonth?: number; // 毎年、半年に1回時の月 (1〜12)
+  billingDayOfWeek?: number; // 週払い時の曜日 (0=日, 1=月, ..., 6=土)
   paymentMethod: string; // 'Apple Account' | 'PayPay' | 'クレジットカード' | 'キャリア決済' | その他
   category: string; // 'エンタメ' | '音楽' | '仕事・ツール' | 'クラウド・ストレージ' | '学習' | その他
   planType: string; // '一般' | '学割' | 'ファミリー' | '複数人シェア' | その他
@@ -32,6 +33,8 @@ export interface Settings {
   paymentMethods: string[];
   planTypes: string[];
   notificationEnabled: boolean;
+  reminderDaysBefore: number;
+  reminderTime: string;
 }
 
 export const DEFAULT_SETTINGS: Settings = {
@@ -40,4 +43,6 @@ export const DEFAULT_SETTINGS: Settings = {
   paymentMethods: ['クレジットカード', 'PayPay', 'Apple Account', 'キャリア決済', '銀行振込', 'その他'],
   planTypes: ['一般', '学割', 'ファミリー', '複数人シェア', 'その他'],
   notificationEnabled: true,
+  reminderDaysBefore: 1,
+  reminderTime: "12:00",
 };

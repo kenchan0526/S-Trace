@@ -92,6 +92,7 @@ export default function SubscriptionModal({
       billingCycle: formData.billingCycle || "毎月",
       billingMonth: Number(formData.billingMonth) || 1,
       billingDate: Number(formData.billingDate) || 1,
+      billingDayOfWeek: Number(formData.billingDayOfWeek) || 0,
       paymentMethod: formData.paymentMethod || settings.paymentMethods[0],
       category: formData.category || settings.categories[0],
       planType: formData.planType || settings.planTypes[0],
@@ -185,7 +186,7 @@ export default function SubscriptionModal({
                 type="text"
                 inputMode="numeric"
                 required
-                value={formData.amount?.toLocaleString() || ""}
+                value={formData.amount === 0 ? "" : (formData.amount?.toLocaleString() || "")}
                 onChange={handleAmountChange}
                 placeholder="1,200"
                 className="w-full pl-8 pr-4 py-3 bg-gray-50 border-none rounded-xl focus:ring-2 focus:ring-primary focus:bg-white transition-all text-base font-bold"
@@ -208,10 +209,13 @@ export default function SubscriptionModal({
             </div>
             <div>
               <label className="block text-sm font-bold text-gray-700 mb-1">
-                支払日 {formData.billingCycle === "毎年" ? "(月/日)" : "(日)"}
+                支払日 {
+                  (formData.billingCycle === "毎年" || formData.billingCycle === "半年に1回") ? "(月/日)" : 
+                  formData.billingCycle === "週払い" ? "(曜日)" : "(日)"
+                }
               </label>
               <div className="flex space-x-2">
-                {formData.billingCycle === "毎年" && (
+                {(formData.billingCycle === "毎年" || formData.billingCycle === "半年に1回") && (
                   <select
                     name="billingMonth"
                     value={formData.billingMonth || 1}
@@ -223,16 +227,29 @@ export default function SubscriptionModal({
                     ))}
                   </select>
                 )}
-                <select
-                  name="billingDate"
-                  value={formData.billingDate}
-                  onChange={handleChange}
-                  className="w-full px-4 py-3 bg-gray-50 border-none rounded-xl focus:ring-2 focus:ring-primary text-base"
-                >
-                  {Array.from({ length: 31 }, (_, i) => i + 1).map(d => (
-                    <option key={d} value={d}>{d}日</option>
-                  ))}
-                </select>
+                {formData.billingCycle === "週払い" ? (
+                  <select
+                    name="billingDayOfWeek"
+                    value={formData.billingDayOfWeek || 0}
+                    onChange={handleChange}
+                    className="w-full px-4 py-3 bg-gray-50 border-none rounded-xl focus:ring-2 focus:ring-primary text-base"
+                  >
+                    {['日曜日', '月曜日', '火曜日', '水曜日', '木曜日', '金曜日', '土曜日'].map((day, i) => (
+                      <option key={i} value={i}>{day}</option>
+                    ))}
+                  </select>
+                ) : (
+                  <select
+                    name="billingDate"
+                    value={formData.billingDate}
+                    onChange={handleChange}
+                    className="w-full px-4 py-3 bg-gray-50 border-none rounded-xl focus:ring-2 focus:ring-primary text-base"
+                  >
+                    {Array.from({ length: 31 }, (_, i) => i + 1).map(d => (
+                      <option key={d} value={d}>{d}日</option>
+                    ))}
+                  </select>
+                )}
               </div>
             </div>
           </div>

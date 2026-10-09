@@ -44,7 +44,7 @@ export default function ListPage() {
   return (
     <div className="min-h-full bg-background pb-10">
       <Header 
-        title="一覧" 
+        title="List" 
         showSearch 
         showFilter 
         onSearchClick={() => setIsSearchOpen(!isSearchOpen)}

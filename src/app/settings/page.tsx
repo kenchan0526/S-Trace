@@ -110,7 +110,7 @@ export default function SettingsPage() {
 
   return (
     <div className="min-h-full bg-background pb-10">
-      <Header title="設定" />
+      <Header title="Settings" />
       <div className="p-4 space-y-6">
         
         {/* Master Data Settings */}
@@ -152,6 +152,33 @@ export default function SettingsPage() {
                 <div className={`absolute top-[2px] left-[2px] bg-white w-5 h-5 rounded-full transition-transform ${settings.notificationEnabled ? "translate-x-full" : ""}`}></div>
               </div>
             </button>
+            {settings.notificationEnabled && (
+              <>
+                <div className="px-4 py-4 flex justify-between items-center bg-gray-50/50">
+                  <span className="text-sm font-bold text-gray-700">通知タイミング</span>
+                  <select 
+                    value={settings.reminderDaysBefore}
+                    onChange={(e) => updateSettings({ ...settings, reminderDaysBefore: Number(e.target.value) })}
+                    className="bg-gray-100 border-none rounded-lg text-sm px-3 py-1.5 focus:ring-2 focus:ring-primary font-bold"
+                  >
+                    <option value={0}>当日</option>
+                    <option value={1}>1日前</option>
+                    <option value={2}>2日前</option>
+                    <option value={3}>3日前</option>
+                    <option value={7}>1週間前</option>
+                  </select>
+                </div>
+                <div className="px-4 py-4 flex justify-between items-center bg-gray-50/50">
+                  <span className="text-sm font-bold text-gray-700">通知時間</span>
+                  <input 
+                    type="time" 
+                    value={settings.reminderTime}
+                    onChange={(e) => updateSettings({ ...settings, reminderTime: e.target.value })}
+                    className="bg-gray-100 border-none rounded-lg text-sm px-3 py-1.5 focus:ring-2 focus:ring-primary font-bold"
+                  />
+                </div>
+              </>
+            )}
             <button onClick={testNotification} className="w-full px-4 py-4 text-left text-sm font-bold text-primary hover:bg-gray-50 flex justify-between">
               テスト通知を送信
             </button>

@@ -36,13 +36,19 @@ export default function Home() {
         let subDate = new Date(today.getFullYear(), today.getMonth(), s.billingDate);
         if (s.billingCycle === "毎年") {
           subDate = new Date(today.getFullYear(), (s.billingMonth || 1) - 1, s.billingDate);
-          if (subDate < today) {
-            subDate.setFullYear(today.getFullYear() + 1);
-          }
+          if (subDate < today) subDate.setFullYear(today.getFullYear() + 1);
+        } else if (s.billingCycle === "半年に1回") {
+          subDate = new Date(today.getFullYear(), (s.billingMonth || 1) - 1, s.billingDate);
+          while (subDate < today) subDate.setMonth(subDate.getMonth() + 6);
+        } else if (s.billingCycle === "週払い") {
+          subDate = new Date(today);
+          const targetDay = s.billingDayOfWeek || 0;
+          const currentDay = today.getDay();
+          let diff = targetDay - currentDay;
+          if (diff < 0) diff += 7;
+          subDate.setDate(today.getDate() + diff);
         } else {
-          if (subDate < today) {
-            subDate.setMonth(today.getMonth() + 1);
-          }
+          if (subDate < today) subDate.setMonth(today.getMonth() + 1);
         }
         
         const diffTime = subDate.getTime() - today.getTime();
@@ -55,6 +61,16 @@ export default function Home() {
           if (s.billingCycle === "毎年") {
             d = new Date(today.getFullYear(), (s.billingMonth || 1) - 1, s.billingDate);
             if (d < today) d.setFullYear(today.getFullYear() + 1);
+          } else if (s.billingCycle === "半年に1回") {
+            d = new Date(today.getFullYear(), (s.billingMonth || 1) - 1, s.billingDate);
+            while (d < today) d.setMonth(d.getMonth() + 6);
+          } else if (s.billingCycle === "週払い") {
+            d = new Date(today);
+            const targetDay = s.billingDayOfWeek || 0;
+            const currentDay = today.getDay();
+            let diff = targetDay - currentDay;
+            if (diff < 0) diff += 7;
+            d.setDate(today.getDate() + diff);
           } else {
             if (d < today) d.setMonth(today.getMonth() + 1);
           }
@@ -94,7 +110,7 @@ export default function Home() {
 
   return (
     <div className="min-h-full bg-background pb-10">
-      <Header title="ホーム" />
+      <Header title="Home" />
       
       <div className="p-4 space-y-6">
         

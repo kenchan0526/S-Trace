@@ -79,7 +79,7 @@ export default function AnalyticsPage() {
 
   return (
     <div className="min-h-full bg-background pb-10">
-      <Header title="分析" />
+      <Header title="Analytics" />
       <div className="p-4 space-y-6">
         
         {/* Cumulative Total */}

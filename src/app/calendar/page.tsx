@@ -66,7 +66,7 @@ export default function CalendarPage() {
 
   return (
     <div className="min-h-full bg-background pb-10">
-      <Header title="カレンダー" />
+      <Header title="Calendar" />
       <div className="p-4 space-y-4">
         
         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4">

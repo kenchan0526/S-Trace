@@ -8,11 +8,11 @@ export default function BottomNav() {
   const pathname = usePathname();
 
   const navItems = [
-    { label: "ホーム", href: "/", icon: Home },
-    { label: "一覧", href: "/list", icon: CreditCard },
-    { label: "分析", href: "/analytics", icon: PieChart },
-    { label: "カレンダー", href: "/calendar", icon: Calendar },
-    { label: "設定", href: "/settings", icon: Settings },
+    { label: "Home", href: "/", icon: Home },
+    { label: "List", href: "/list", icon: CreditCard },
+    { label: "Analytics", href: "/analytics", icon: PieChart },
+    { label: "Calendar", href: "/calendar", icon: Calendar },
+    { label: "Settings", href: "/settings", icon: Settings },
   ];
 
   return (

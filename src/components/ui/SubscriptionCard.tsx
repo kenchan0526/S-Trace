@@ -27,25 +27,39 @@ export default function SubscriptionCard({ subscription, onClick }: Subscription
     totalPaid = subscription.amount;
   }
 
-  const paymentText = subscription.billingCycle === "毎年" 
-    ? `毎年${subscription.billingMonth || 1}月${subscription.billingDate}日` 
+  const daysOfWeek = ['日', '月', '火', '水', '木', '金', '土'];
+  const paymentText = subscription.billingCycle === "毎年" || subscription.billingCycle === "半年に1回"
+    ? `${subscription.billingCycle}${subscription.billingMonth || 1}月${subscription.billingDate}日` 
+    : subscription.billingCycle === "週払い" 
+    ? `毎週${daysOfWeek[subscription.billingDayOfWeek || 0]}曜日`
     : `毎月${subscription.billingDate}日`;
   
   let isUpcoming = false;
-  const today = new Date().getDate();
-  const currentMonth = new Date().getMonth() + 1;
+  const today = new Date();
+  today.setHours(0,0,0,0);
 
   if (subscription.status !== "cancelled" && subscription.status !== "archived") {
+    let subDate = new Date(today.getFullYear(), today.getMonth(), subscription.billingDate);
     if (subscription.billingCycle === "毎年") {
-      const bMonth = subscription.billingMonth || 1;
-      if (bMonth === currentMonth && subscription.billingDate >= today) {
-        if (subscription.billingDate - today <= 5) isUpcoming = true;
-      }
+      subDate = new Date(today.getFullYear(), (subscription.billingMonth || 1) - 1, subscription.billingDate);
+      if (subDate < today) subDate.setFullYear(today.getFullYear() + 1);
+    } else if (subscription.billingCycle === "半年に1回") {
+      subDate = new Date(today.getFullYear(), (subscription.billingMonth || 1) - 1, subscription.billingDate);
+      while (subDate < today) subDate.setMonth(subDate.getMonth() + 6);
+    } else if (subscription.billingCycle === "週払い") {
+      subDate = new Date(today);
+      const targetDay = subscription.billingDayOfWeek || 0;
+      const currentDay = today.getDay();
+      let diff = targetDay - currentDay;
+      if (diff < 0) diff += 7;
+      subDate.setDate(today.getDate() + diff);
     } else {
-      if (subscription.billingDate >= today && subscription.billingDate - today <= 5) {
-        isUpcoming = true;
-      }
+      if (subDate < today) subDate.setMonth(today.getMonth() + 1);
     }
+
+    const diffTime = subDate.getTime() - today.getTime();
+    const daysLeft = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    if (daysLeft >= 0 && daysLeft <= 5) isUpcoming = true;
   }
 
   return (
