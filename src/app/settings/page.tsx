@@ -62,9 +62,12 @@ export default function SettingsPage() {
   };
 
   const openMasterModal = (key: keyof Settings) => {
-    setEditList([...settings[key]]);
-    setNewItemText("");
-    setActiveModal(key);
+    const val = settings[key];
+    if (Array.isArray(val)) {
+      setEditList([...val]);
+      setNewItemText("");
+      setActiveModal(key);
+    }
   };
 
   const saveMasterList = () => {
