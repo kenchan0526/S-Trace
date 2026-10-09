@@ -12,14 +12,16 @@ export default function SubscriptionCard({ subscription, onClick }: Subscription
   const categoryInitial = subscription.name.charAt(0).toUpperCase();
 
   const startDate = new Date(subscription.startDate);
-  const now = new Date();
+  const endDate = subscription.status === "cancelled" && subscription.cancellationDate 
+    ? new Date(subscription.cancellationDate) 
+    : new Date();
   let totalPaid = 0;
 
   if (subscription.billingCycle === "毎月") {
-    const months = Math.max(1, differenceInMonths(now, startDate) + 1); // include current month
+    const months = Math.max(1, differenceInMonths(endDate, startDate) + 1); // include current month
     totalPaid = subscription.amount * months;
   } else if (subscription.billingCycle === "毎年") {
-    const years = Math.max(1, differenceInYears(now, startDate) + 1);
+    const years = Math.max(1, differenceInYears(endDate, startDate) + 1);
     totalPaid = subscription.amount * years;
   } else {
     totalPaid = subscription.amount;
@@ -73,9 +75,14 @@ export default function SubscriptionCard({ subscription, onClick }: Subscription
             トライアル中
           </span>
         )}
-        {subscription.status === "considering_cancellation" && (
-          <span className="px-2.5 py-1 rounded-full bg-red-50 text-red-600 text-[10px] font-medium border border-red-100">
-            解約検討中
+        {subscription.status === "cancelled" && (
+          <span className="px-2.5 py-1 rounded-full bg-gray-100 text-gray-500 text-[10px] font-medium border border-gray-200">
+            解約済
+          </span>
+        )}
+        {subscription.status === "archived" && (
+          <span className="px-2.5 py-1 rounded-full bg-gray-100 text-gray-400 text-[10px] font-medium border border-gray-200">
+            アーカイブ
           </span>
         )}
       </div>

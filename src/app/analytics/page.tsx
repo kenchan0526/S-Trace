@@ -4,6 +4,7 @@ import { useState } from "react";
 import Header from "@/components/layout/Header";
 import { useSubscriptions } from "@/hooks/useSubscriptions";
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from "recharts";
+import { differenceInMonths, differenceInYears } from "date-fns";
 
 const COLORS = ['#8B5CF6', '#C4B5FD', '#F472B6', '#34D399', '#FBBF24', '#60A5FA', '#A78BFA', '#9CA3AF'];
 
@@ -13,7 +14,7 @@ export default function AnalyticsPage() {
 
   if (!isLoaded) return null;
 
-  const activeSubs = subscriptions.filter(s => s.status !== "archived" && s.status !== "paused");
+  const activeSubs = subscriptions.filter(s => s.status !== "archived" && s.status !== "cancelled");
 
   const totalMonthly = activeSubs.reduce((sum, sub) => {
     return sum + (sub.billingCycle === "毎年" ? Math.round(sub.amount / 12) : sub.amount);
@@ -23,8 +24,24 @@ export default function AnalyticsPage() {
     return sum + (sub.billingCycle === "毎月" ? sub.amount * 12 : sub.amount);
   }, 0);
 
-  const displayTotal = isMonthly ? totalMonthly : totalYearly;
   const dailyCost = Math.round(totalYearly / 365);
+
+  const totalCumulative = subscriptions.reduce((sum, sub) => {
+    const startDate = new Date(sub.startDate);
+    const endDate = sub.status === "cancelled" && sub.cancellationDate 
+      ? new Date(sub.cancellationDate) 
+      : new Date();
+    
+    let paid = 0;
+    if (sub.billingCycle === "毎月") {
+      paid = sub.amount * Math.max(1, differenceInMonths(endDate, startDate) + 1);
+    } else if (sub.billingCycle === "毎年") {
+      paid = sub.amount * Math.max(1, differenceInYears(endDate, startDate) + 1);
+    } else {
+      paid = sub.amount;
+    }
+    return sum + paid;
+  }, 0);
 
   const calculateAmount = (sub: typeof activeSubs[0]) => {
     if (isMonthly) {
@@ -64,6 +81,14 @@ export default function AnalyticsPage() {
     <div className="min-h-full bg-background pb-10">
       <Header title="分析" />
       <div className="p-4 space-y-6">
+        
+        {/* Cumulative Total */}
+        <div className="bg-gradient-to-br from-primary to-purple-400 rounded-2xl shadow-sm p-6 text-center text-white">
+          <h2 className="text-xs font-bold text-purple-100 mb-1">これまでの累計支払い総額</h2>
+          <p className="text-3xl font-extrabold tracking-tight">¥{totalCumulative.toLocaleString()}</p>
+          <p className="text-[10px] text-purple-200 mt-2">※ 解約済みのサブスクリプションを含みます</p>
+        </div>
+
         {/* Toggle */}
         <div className="flex bg-gray-100 rounded-full p-1 max-w-xs mx-auto">
           <button 

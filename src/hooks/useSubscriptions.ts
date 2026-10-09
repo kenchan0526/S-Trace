@@ -34,7 +34,7 @@ export function useSubscriptions() {
 
       const storedSettings = localStorage.getItem("s-trace-settings");
       if (storedSettings) {
-        setSettings(JSON.parse(storedSettings));
+        setSettings({ ...DEFAULT_SETTINGS, ...JSON.parse(storedSettings) });
       } else {
         localStorage.setItem("s-trace-settings", JSON.stringify(DEFAULT_SETTINGS));
       }

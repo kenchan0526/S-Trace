@@ -137,9 +137,17 @@ export default function SettingsPage() {
         <div>
           <h2 className="text-sm font-bold text-gray-900 mb-3 px-2">通知</h2>
           <div className="bg-white rounded-2xl shadow-sm border border-gray-100 divide-y divide-gray-100 overflow-hidden">
-            <button className="w-full px-4 py-4 text-left text-sm font-bold text-gray-700 hover:bg-gray-50 flex justify-between">
-              通知設定
-              <span className="text-primary">許可済み</span>
+            <button 
+              onClick={() => {
+                updateSettings({ ...settings, notificationEnabled: !settings.notificationEnabled });
+                toast.success(settings.notificationEnabled ? "通知をオフにしました" : "通知をオンにしました");
+              }}
+              className="w-full px-4 py-4 text-left text-sm font-bold text-gray-700 hover:bg-gray-50 flex justify-between items-center"
+            >
+              プッシュ通知を有効にする
+              <div className={`w-11 h-6 rounded-full transition-colors relative ${settings.notificationEnabled ? "bg-primary" : "bg-gray-200"}`}>
+                <div className={`absolute top-[2px] left-[2px] bg-white w-5 h-5 rounded-full transition-transform ${settings.notificationEnabled ? "translate-x-full" : ""}`}></div>
+              </div>
             </button>
             <button onClick={testNotification} className="w-full px-4 py-4 text-left text-sm font-bold text-primary hover:bg-gray-50 flex justify-between">
               テスト通知を送信

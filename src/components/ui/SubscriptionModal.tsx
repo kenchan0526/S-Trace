@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { X, Trash2 } from "lucide-react";
+import { X, Trash2, RotateCcw } from "lucide-react";
 import { Subscription, Settings } from "@/types/subscription";
 import toast from "react-hot-toast";
 
@@ -31,6 +31,7 @@ export default function SubscriptionModal({
     category: settings.categories[0],
     planType: settings.planTypes[0],
     startDate: new Date().toISOString().split("T")[0],
+    cancellationDate: new Date().toISOString().split("T")[0],
     status: "active",
     isChargeRequired: false,
     reminders: [],
@@ -40,7 +41,10 @@ export default function SubscriptionModal({
 
   useEffect(() => {
     if (initialData) {
-      setFormData(initialData);
+      setFormData({
+        ...initialData,
+        cancellationDate: initialData.cancellationDate || new Date().toISOString().split("T")[0],
+      });
     } else {
       setFormData({
         name: "",
@@ -51,6 +55,7 @@ export default function SubscriptionModal({
         category: settings.categories[0],
         planType: settings.planTypes[0],
         startDate: new Date().toISOString().split("T")[0],
+        cancellationDate: new Date().toISOString().split("T")[0],
         status: "active",
         isChargeRequired: false,
         reminders: [],
@@ -89,6 +94,7 @@ export default function SubscriptionModal({
       planType: formData.planType || settings.planTypes[0],
       startDate: formData.startDate || new Date().toISOString().split("T")[0],
       status: formData.status as any || "active",
+      cancellationDate: formData.status === "cancelled" ? formData.cancellationDate : undefined,
       isChargeRequired: formData.isChargeRequired || false,
       reminders: formData.reminders || [],
       isChargedThisMonth: formData.isChargedThisMonth || false,
@@ -114,10 +120,15 @@ export default function SubscriptionModal({
     }
   };
 
+  const handleResetCharge = () => {
+    setFormData(prev => ({ ...prev, isChargedThisMonth: false }));
+    toast.success("チャージ済みの状態を取り消しました。保存を押して完了してください。");
+  };
+
   return (
-    <div className="fixed inset-0 z-50 flex flex-col bg-white overflow-hidden slide-up-animation">
+    <div className="fixed inset-0 z-50 flex flex-col bg-white overflow-x-hidden slide-up-animation">
       {/* Header */}
-      <div className="flex items-center justify-between px-4 py-4 border-b border-gray-100 bg-white sticky top-0 z-10 pt-[env(safe-area-inset-top)]">
+      <div className="flex items-center justify-between px-4 py-4 border-b border-gray-100 bg-white/90 backdrop-blur-md sticky top-0 z-10 pt-[env(safe-area-inset-top)] w-full">
         <button onClick={onClose} className="p-2 -ml-2 text-gray-500 hover:text-gray-900">
           <X size={24} />
         </button>
@@ -130,8 +141,24 @@ export default function SubscriptionModal({
       </div>
 
       {/* Scrollable Form */}
-      <div className="flex-1 overflow-y-auto pb-[env(safe-area-inset-bottom)] p-4 interactive-widget-resizes-content">
-        <form onSubmit={handleSubmit} className="space-y-6 max-w-lg mx-auto pb-20">
+      <div className="flex-1 overflow-y-auto pb-[calc(env(safe-area-inset-bottom)+5rem)] p-4 interactive-widget-resizes-content w-full">
+        <form onSubmit={handleSubmit} className="space-y-6 max-w-lg mx-auto pb-20 px-2 w-full">
+          
+          {/* Action to undo charge if it's already charged */}
+          {formData.isChargedThisMonth && (
+            <div className="bg-gray-50 rounded-xl p-4 flex items-center justify-between border border-gray-200">
+              <span className="text-sm font-bold text-gray-600">今月のチャージ完了済</span>
+              <button 
+                type="button" 
+                onClick={handleResetCharge}
+                className="text-xs flex items-center space-x-1 font-bold text-orange-600 bg-orange-50 px-3 py-1.5 rounded-full"
+              >
+                <RotateCcw size={14} />
+                <span>取り消す</span>
+              </button>
+            </div>
+          )}
+
           {/* Name */}
           <div>
             <label className="block text-sm font-bold text-gray-700 mb-1">サービス名</label>
@@ -249,64 +276,58 @@ export default function SubscriptionModal({
 
           {/* Status */}
           <div>
-            <label className="block text-sm font-bold text-gray-700 mb-2">ステータス</label>
-            <div className="grid grid-cols-2 gap-2">
-              {[
-                { val: "active", label: "契約中" },
-                { val: "trial", label: "トライアル中" },
-                { val: "considering_cancellation", label: "解約検討中" },
-                { val: "paused", label: "休止中" }
-              ].map(s => (
-                <button
-                  key={s.val}
-                  type="button"
-                  onClick={() => setFormData(p => ({ ...p, status: s.val as any }))}
-                  className={`py-3 px-2 rounded-xl text-sm font-bold transition-colors ${
-                    formData.status === s.val 
-                      ? "bg-primary-light text-primary border-2 border-primary" 
-                      : "bg-gray-50 text-gray-600 border-2 border-transparent"
-                  }`}
-                >
-                  {s.label}
-                </button>
-              ))}
+            <label className="block text-sm font-bold text-gray-700 mb-1">ステータス</label>
+            <select
+              name="status"
+              value={formData.status}
+              onChange={handleChange}
+              className="w-full px-4 py-3 bg-gray-50 border-none rounded-xl focus:ring-2 focus:ring-primary text-base"
+            >
+              <option value="active">契約中</option>
+              <option value="trial">無料トライアル中</option>
+              <option value="considering_cancellation">解約検討中</option>
+              <option value="cancelled">解約済</option>
+              <option value="archived">アーカイブ</option>
+            </select>
+          </div>
+
+          {/* Dates */}
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-bold text-gray-700 mb-1">契約開始日</label>
+              <input
+                type="date"
+                name="startDate"
+                required
+                value={formData.startDate || ""}
+                onChange={handleChange}
+                className="w-full px-4 py-3 bg-gray-50 border-none rounded-xl focus:ring-2 focus:ring-primary text-base"
+              />
             </div>
+            {formData.status === "cancelled" && (
+              <div className="slide-up-animation">
+                <label className="block text-sm font-bold text-gray-700 mb-1">解約日</label>
+                <input
+                  type="date"
+                  name="cancellationDate"
+                  required
+                  value={formData.cancellationDate || ""}
+                  onChange={handleChange}
+                  className="w-full px-4 py-3 bg-gray-50 border-none rounded-xl focus:ring-2 focus:ring-primary text-base"
+                />
+              </div>
+            )}
           </div>
 
-          {/* Start Date */}
-          <div>
-            <label className="block text-sm font-bold text-gray-700 mb-1">契約開始日</label>
-            <input
-              type="date"
-              name="startDate"
-              value={formData.startDate}
-              onChange={handleChange}
-              className="w-full px-4 py-3 bg-gray-50 border-none rounded-xl focus:ring-2 focus:ring-primary text-base"
-            />
-          </div>
-
-          {/* Notes */}
-          <div>
-            <label className="block text-sm font-bold text-gray-700 mb-1">メモ</label>
-            <textarea
-              name="notes"
-              value={formData.notes || ""}
-              onChange={handleChange}
-              placeholder="備考など..."
-              rows={3}
-              className="w-full px-4 py-3 bg-gray-50 border-none rounded-xl focus:ring-2 focus:ring-primary text-base"
-            />
-          </div>
-
-          {/* Delete Button */}
-          {initialData && onDelete && (
+          {/* Danger Zone */}
+          {initialData && (
             <div className="pt-6 border-t border-gray-100">
               <button
                 type="button"
                 onClick={handleDelete}
-                className="w-full flex items-center justify-center space-x-2 py-4 text-red-500 font-bold bg-red-50 rounded-xl hover:bg-red-100 transition-colors"
+                className="flex items-center justify-center space-x-2 w-full py-3 bg-red-50 text-red-600 font-bold rounded-xl active:bg-red-100 transition-colors"
               >
-                <Trash2 size={20} />
+                <Trash2 size={18} />
                 <span>このサブスクを削除</span>
               </button>
             </div>
